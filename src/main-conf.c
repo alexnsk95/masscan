@@ -300,6 +300,7 @@ masscan_echo(struct Masscan *masscan, FILE *fp)
     fprintf(fp, "shard = %u/%u\n", masscan->shard.one, masscan->shard.of);
     if (masscan->is_banners)
         fprintf(fp, "banners = true\n");
+    fprintf(fp, "%sautosave = true\n", masscan->is_autosave?"":"no");
 
     fprintf(fp, "# ADAPTER SETTINGS\n");
     if (masscan->nic_count == 0)
@@ -463,7 +464,7 @@ masscan_echo(struct Masscan *masscan, FILE *fp)
 /***************************************************************************
  ***************************************************************************/
 void
-masscan_save_state(struct Masscan *masscan)
+masscan_save_state(struct Masscan *masscan, int notify)
 {
     char filename[512];
     FILE *fp;
@@ -471,9 +472,11 @@ masscan_save_state(struct Masscan *masscan)
 
 
     strcpy_s(filename, sizeof(filename), "paused.conf");
-    fprintf(stderr, "                                   "
-                    "                                   \r");
-    fprintf(stderr, "saving resume file to: %s\n", filename);
+    if(notify) {
+        fprintf(stderr, "                                   "
+                        "                                   \r");
+        fprintf(stderr, "saving resume file to: %s\n", filename);
+    }
 
     err = fopen_s(&fp, filename, "wt");
     if (err) {
@@ -1298,6 +1301,10 @@ masscan_set_parameter(struct Masscan *masscan,
         ranges_from_file(&masscan->targets, value);
     } else if (EQUALS("infinite", name)) {
         masscan->is_infinite = 1;
+    } else if (EQUALS("autosave", name)) {
+        masscan->is_autosave = 1;
+    } else if (EQUALS("noautosave", name)) {
+        masscan->is_autosave = 0;
     } else if (EQUALS("interactive", name)) {
         masscan->output.is_interactive = 1;
     } else if (EQUALS("nointeractive", name)) {
@@ -1676,7 +1683,7 @@ is_singleton(const char *name)
         "banners", "banner", "nobanners", "nobanner",
         "offline", "ping", "ping-sweep",
         "arp",  "infinite", "nointeractive", "interactive", "status", "nostatus",
-        "read-range", "read-ranges", "readrange", "read-ranges",
+        "read-range", "read-ranges", "readrange", "read-ranges", "autosave",
         0};
     size_t i;
 

@@ -1259,15 +1259,16 @@ main_scan(struct Masscan *masscan)
     /*
      * Now wait for <ctrl-c> to be pressed OR for threads to exit
      */
+
     status_start(&status);
     status.is_infinite = masscan->is_infinite;
+    int last_save_index=0;
     while (!is_tx_done) {
         unsigned i;
         double rate = 0;
         uint64_t total_tcbs = 0;
         uint64_t total_synacks = 0;
         uint64_t total_syns = 0;
-
 
         /* Find the minimum index of all the threads */
         min_index = UINT64_MAX;
@@ -1300,7 +1301,10 @@ main_scan(struct Masscan *masscan)
             status_print(&status, min_index, range, rate,
                 total_tcbs, total_synacks, total_syns,
                 0);
-
+	if (masscan->is_autosave && ++last_save_index % (60 / 3 * 4) == 0) {
+            masscan->resume.index = min_index;
+            masscan_save_state(masscan, 0);
+	}
         /* Sleep for almost a second */
         pixie_mssleep(750);
     }
@@ -1313,7 +1317,7 @@ main_scan(struct Masscan *masscan)
         masscan->resume.index = min_index;
 
         /* Write current settings to "paused.conf" so that the scan can be restarted */
-        masscan_save_state(masscan);
+        masscan_save_state(masscan, 1);
     }
 
 

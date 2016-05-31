@@ -90,7 +90,7 @@ struct TcpCfgPayloads
 struct Masscan
 {
     /**
-     * What this progrma is doing, which is normally "Operation_Scan", but
+     * What this programma is doing, which is normally "Operation_Scan", but
      * which can be other things, like "Operation_SelfTest"
      */
     enum Operation op;
@@ -200,6 +200,7 @@ struct Masscan
             unsigned port;
         } target;
     } resume;
+    unsigned is_autosave:1; /* --autosave */
 
     /**
      * --shard n/m
@@ -395,7 +396,7 @@ int mainconf_selftest(void);
 void masscan_read_config_file(struct Masscan *masscan, const char *filename);
 void masscan_command_line(struct Masscan *masscan, int argc, char *argv[]);
 void masscan_usage(void);
-void masscan_save_state(struct Masscan *masscan);
+void masscan_save_state(struct Masscan *masscan, int notify);
 void main_listscan(struct Masscan *masscan);
 
 /**
